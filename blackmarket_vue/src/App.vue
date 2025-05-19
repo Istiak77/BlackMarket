@@ -2,8 +2,8 @@
 
 <!--NavBar-->
 <div id="wrapper">
-    <nav class="navbar is-dark">
-      <div class="navbrand">
+    <nav class="navbar">
+      <div class="navbrand my-auto">
         <router-link to="/" class="navbar-item"><strong>Black Market</strong></router-link>
         
         <a  class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbar-menu" @click="showMobileMenu = !showMobileMenu">
@@ -19,8 +19,8 @@
           <router-link to="/accessories" class="navbar-item">Accessories</router-link>
           <div class="navbar-item">
             <div class="buttons">
-              <router-link to="/log-in" class="button is-light">Log In</router-link>
-              <router-link to="/cart" class="button is-success">
+              <router-link to="/log-in" class="button is-success">Log In</router-link>
+              <router-link to="/cart" class="button is-light">
                 <span class="icon"><i class="fas fa-shopping-cart"></i></span>
                 <span>Cart</span>
               </router-link>
