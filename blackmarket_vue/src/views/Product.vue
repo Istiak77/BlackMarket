@@ -17,7 +17,7 @@
 
                 <div class="field has-addons mt-6">
                     <div class="control">
-                        <input type="number" class="input" min="1" v-model="quality">
+                        <input type="number" class="input" min="1" v-model="quantity">
                     </div>
                     <div class="control">
                         <a class="button is-dark">Add to Cart</a>
@@ -38,6 +38,7 @@ export default {
     name:'Product',
     data() {
         return {
+            product:{},
             quantity: 1
         }
     },
