@@ -40,6 +40,8 @@
     },
     mounted() {
       this.getLatestProducts()
+
+      document.title = 'Home | Black Market'
     },
     methods: {
       async getLatestProducts() {

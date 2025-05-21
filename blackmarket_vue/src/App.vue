@@ -15,8 +15,8 @@
       </div>
       <div class="navbar-menu" id="navbar-menu" v-bind:class="{'is-active': showMobileMenu}">
         <div class="navbar-end">
-          <router-link to="/tshirt" class="navbar-item">T-Shirts</router-link>
-          <router-link to="/hoodie" class="navbar-item">Hoodies</router-link>
+          <router-link to="/casualwears" class="navbar-item">Casual-Wears</router-link>
+          <router-link to="/outfits" class="navbar-item">Outfits</router-link>
           <router-link to="/accessories" class="navbar-item">Accessories</router-link>
           <div class="navbar-item">
             <div class="buttons">

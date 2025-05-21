@@ -58,7 +58,7 @@
                     .then(response => {
                         this.product = response.data
 
-                        document.title = this.product.name + ' | Djackets'
+                        document.title = this.product.name + ' | Black Market'
                     })
                     .catch(error => {
                         console.log(error)

@@ -41,7 +41,6 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'djoser',
     'corsheaders',
-
     'product',
 ]
 
@@ -60,6 +59,8 @@ ROOT_URLCONF = 'blackmarket.urls'
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8080",
+    "http://127.0.0.1:8080",
+    "http://192.168.0.121:8080",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
