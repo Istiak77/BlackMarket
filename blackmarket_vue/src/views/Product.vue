@@ -68,15 +68,20 @@
             },
             addToCart() {
                 if (isNaN(this.quantity) || this.quantity < 1) {
-                    this.quantity = 1
+                    this.quantity = 1;
                 }
 
                 const item = {
                     product: this.product,
                     quantity: this.quantity
-                }
+                };
 
-                this.$store.commit('addToCart', item)
+                this.$store.commit('addToCart', item);
+
+                const existingToasts = document.querySelectorAll('.toast');
+                existingToasts.forEach(el => el.remove());
+
+                if (this._toastTimeout) return;
 
                 toast({
                     message: 'The product was added to the cart',
@@ -85,8 +90,13 @@
                     pauseOnHover: true,
                     duration: 2000,
                     position: 'bottom-right',
-                })
+                });
+
+                this._toastTimeout = setTimeout(() => {
+                    this._toastTimeout = null;
+                }, 2000);
             }
+
         }
     }
 </script>
