@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'djoser',
     'corsheaders',
     'product',
+    'payment',
 ]
 
 MIDDLEWARE = [
@@ -136,3 +137,7 @@ MEDIA_ROOT = BASE_DIR / 'media/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+SSLCOMMERZ_STORE_ID = 'idont6830cad15124b'
+SSLCOMMERZ_STORE_PASS = 'idont6830cad15124b@ssl'
+SSLCOMMERZ_IS_SANDBOX = True  # Set to False in production
