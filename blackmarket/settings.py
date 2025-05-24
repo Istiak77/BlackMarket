@@ -69,10 +69,6 @@ REST_FRAMEWORK = {
     ],
 }
 
-ACCOUNT_EMAIL_VERIFICATION = 'none'  # or 'optional' if you want email confirmation
-ACCOUNT_AUTHENTICATION_METHOD = 'username'
-ACCOUNT_EMAIL_REQUIRED = False
-SOCIALACCOUNT_QUERY_EMAIL = True
 
 DJOSER = {
     'LOGIN_FIELD': 'username',
@@ -106,12 +102,23 @@ SOCIALACCOUNT_PROVIDERS = {
         'APP': {
             'client_id': os.getenv('GOOGLE_OAUTH_CLIENT_ID'),
             'secret': os.getenv('GOOGLE_OAUTH_CLIENT_SECRET'),
-            'key': ''
         },
-        'SCOPE': ['profile', 'email'],
-        'AUTH_PARAMS': {'access_type': 'online'},
+        'SCOPE': [
+            'openid',
+            'profile',
+            'email'
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        },
+        'OAUTH_PKCE_ENABLED': True,
     }
 }
+
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
+SOCIALACCOUNT_EMAIL_REQUIRED = False
+SOCIALACCOUNT_QUERY_EMAIL = True
 
 TEMPLATES = [
     {
