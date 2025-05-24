@@ -82,6 +82,7 @@ const routes = [
     name: 'PaymentCancel',
     component: PaymentCancel
   },
+
   {
     path: '/:category_slug/:product_slug',
     name: 'Product',
@@ -92,6 +93,7 @@ const routes = [
     name: 'Category',
     component: Category
   }
+
 ]
 
 const router = createRouter({

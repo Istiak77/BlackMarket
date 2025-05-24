@@ -5,6 +5,8 @@ from sslcommerz_lib import SSLCOMMERZ
 import uuid
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
+from django.shortcuts import redirect
+
 
 @api_view(['POST'])
 def initiate_sslcommerz_payment(request):
@@ -59,17 +61,12 @@ def initiate_sslcommerz_payment(request):
 
 @csrf_exempt
 def payment_success(request):
-    if request.method == 'POST':
-        # You can handle payment verification logic here if needed
-        return HttpResponse("Payment successful (POST).")
-    return HttpResponse("Payment successful (GET).")
-
+    return redirect('http://localhost:8080/payment-success')
 
 @csrf_exempt
 def payment_fail(request):
-    return HttpResponse("Payment failed.")
-
+    return redirect('http://localhost:8080/payment-fail')
 
 @csrf_exempt
 def payment_cancel(request):
-    return HttpResponse("Payment cancelled.")
+    return redirect('http://localhost:8080/payment-cancel')

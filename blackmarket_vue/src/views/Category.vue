@@ -4,10 +4,7 @@
             <div class="column is-12">
                 <h2 class="is-size-2 has-text-centered">{{ category.name }}</h2>
             </div>
-     <ProductBox 
-                v-for = "product in category.products"
-                v-bind:key = "product.id"
-                v-bind:product = "product" />
+            <ProductBox v-for="product in category.products" v-bind:key="product.id" v-bind:product="product" />
         </div>
     </div>
 </template>
@@ -36,41 +33,46 @@
         },
 
         watch: {
-            $route(to, from){
-                if (to.name === 'Category'){
+            $route(to, from) {
+                if (to.name === 'Category') {
                     this.getCategory()
                 }
             }
         },
 
-        methods: {
-            async getCategory() {
-                const categorySlug = this.$route.params.category_slug
+methods: {
+  async getCategory() {
+    const categorySlug = this.$route.params.category_slug
 
-                this.$store.commit('setIsLoading', true)
+    // If categorySlug is not a valid slug (e.g. 'payment-success'), handle differently
+    if (categorySlug === 'payment-success') {
+      // Redirect or show an error, or simply return
+      console.warn(`Invalid category slug: ${categorySlug}`)
+      return
+    }
 
-                axios
-                    .get(`/api/v1/products/${categorySlug}/`)
-                    .then(response => {
-                        this.category = response.data
+    this.$store.commit('setIsLoading', true)
 
-                        document.title = this.category.name + ' | Black Market'
-                    })
-                    .catch(error => {
-                        console.log(error)
+    try {
+      const response = await axios.get(`/api/v1/products/${categorySlug}/`)
+      console.log('Category API response:', response.data)  // Debug log
+      this.category = response.data
+      document.title = this.category.name + ' | Black Market'
+    } catch (error) {
+      console.log(error)
+      toast({
+        message: 'Something went wrong. Please try again.',
+        type: 'is-danger',
+        dismissible: true,
+        pauseOnHover: true,
+        duration: 2000,
+        position: 'bottom-right',
+      })
+    } finally {
+      this.$store.commit('setIsLoading', false)
+    }
+  }
+}
 
-                        toast({
-                            message: 'Something went wrong. Please try again.',
-                            type: 'is-danger',
-                            dismissible: true,
-                            pauseOnHover: true,
-                            duration: 2000,
-                            position: 'bottom-right',
-                        })
-                    })
-
-                this.$store.commit('setIsLoading', false)
-            }
-        }
     }
 </script>
