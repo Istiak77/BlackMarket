@@ -65,19 +65,32 @@
                 password: "",
                 password2: "",
                 errors: [],
-                googleClientId:
-                    "1000611960672-7c0qdquqmbu9v0jcmfht1uoe4fi7bh28.apps.googleusercontent.com", // <---- Replace this with your Google OAuth client ID
+                googleClientId: process.env.VUE_APP_GOOGLE_CLIENT_ID || "1000611960672-7c0qdquqmbu9v0jcmfht1uoe4fi7bh28.apps.googleusercontent.com",
+                isGoogleLoading: false
             };
         },
         mounted() {
-            // Load Google Identity Services script
-            const script = document.createElement("script");
-            script.src = "https://accounts.google.com/gsi/client";
-            script.async = true;
-            script.defer = true;
-            document.head.appendChild(script);
+            this.loadGoogleScript();
         },
         methods: {
+            loadGoogleScript() {
+                if (window.google && window.google.accounts) {
+                    return;
+                }
+
+                const script = document.createElement("script");
+                script.src = "https://accounts.google.com/gsi/client";
+                script.async = true;
+                script.defer = true;
+                script.onload = () => {
+                    console.log("Google Identity Services loaded");
+                };
+                script.onerror = () => {
+                    this.errors = ["Failed to load Google sign-in. Please refresh the page."];
+                };
+                document.head.appendChild(script);
+            },
+
             submitForm() {
                 this.errors = [];
 
@@ -117,71 +130,109 @@
                                         `${property}: ${error.response.data[property]}`
                                     );
                                 }
-                                console.log(JSON.stringify(error.response.data));
+                                console.error("Signup error:", error.response.data);
                             } else if (error.message) {
                                 this.errors.push("Something went wrong. Please try again");
-                                console.log(JSON.stringify(error));
+                                console.error("Signup error:", error);
                             }
                         });
                 }
             },
 
-            loginWithGoogle() {
-                if (
-                    !window.google ||
-                    !window.google.accounts ||
-                    !window.google.accounts.id
-                ) {
-                    this.errors = [
-                        "Google API not loaded yet. Please try again in a moment.",
-                    ];
-                    return;
-                }
+              loginWithGoogle() {
+    // First check if Google API is loaded
+    if (!window.google?.accounts?.id) {
+      this.loadGoogleScript().then(() => this.initializeGoogleAuth());
+      return;
+    }
+    this.initializeGoogleAuth();
+  },
 
-                window.google.accounts.id.initialize({
-                    client_id: this.googleClientId,
-                    callback: this.handleGoogleCredentialResponse,
-                });
+  loadGoogleScript() {
+    return new Promise((resolve) => {
+      const script = document.createElement('script');
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      script.onload = resolve;
+      document.head.appendChild(script);
+    });
+  },
 
-                // Show Google One Tap or Popup sign in
-                window.google.accounts.id.prompt();
-            },
+  initializeGoogleAuth() {
+    window.google.accounts.id.initialize({
+      client_id: this.googleClientId,
+      callback: this.handleGoogleCredentialResponse,
+      ux_mode: 'popup',
+      auto_select: false,
+    });
 
-            handleGoogleCredentialResponse(response) {
-                const googleToken = response.credential;
+    window.google.accounts.id.prompt(notification => {
+      if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+        this.errors = ["Google sign-in popup was blocked. Please allow popups."];
+      }
+    });
+  },
+            async handleGoogleCredentialResponse(response) {
+                try {
+                    this.isGoogleLoading = true;
+                    this.errors = [];
 
-                axios
-                    .post("http://localhost:8000/api/v1/auth/google/", {
-                        access_token: googleToken,
-                    })
-                    .then((res) => {
-                        const token = res.data.access_token || res.data.token || null;
-                        if (token) {
-                            localStorage.setItem("authToken", token);
-                            toast({
-                                message: "Logged in successfully via Google!",
-                                type: "is-success",
-                                dismissible: true,
-                                pauseOnHover: true,
-                                duration: 2000,
-                                position: "bottom-right",
-                            });
-                            this.$router.push("/");
-                        } else {
-                            this.errors = ["Unexpected response from server."];
-                        }
-                    })
-                    .catch((error) => {
-                        this.errors = [];
-                        if (error.response) {
-                            for (const key in error.response.data) {
-                                this.errors.push(`${key}: ${error.response.data[key]}`);
-                            }
-                        } else {
-                            this.errors.push("Login failed. Please try again.");
-                        }
+                    const res = await axios.post("/api/v1/auth/google/", {
+                        access_token: response.credential
                     });
-            },
-        },
+
+                    const token = res.data.key || res.data.access_token;
+                    if (!token) {
+                        throw new Error("No authentication token received");
+                    }
+
+                    // Store token and set default auth header
+                    localStorage.setItem("authToken", token);
+                    axios.defaults.headers.common["Authorization"] = `Token ${token}`;
+
+                    toast({
+                        message: "Logged in successfully via Google!",
+                        type: "is-success",
+                        dismissible: true,
+                        pauseOnHover: true,
+                        duration: 2000,
+                        position: "bottom-right",
+                    });
+
+                    this.$router.push("/");
+                } catch (error) {
+                    this.errors = ["Google login failed. Please try again."];
+
+                    if (error.response) {
+                        console.error("Google auth error response:", error.response.data);
+                        if (error.response.status === 400 || error.response.status === 401) {
+                            this.errors = ["Authentication failed. Please try again."];
+                        }
+                    } else {
+                        console.error("Google auth error:", error);
+                    }
+                } finally {
+                    this.isGoogleLoading = false;
+                }
+            }
+        }
     };
 </script>
+
+<style scoped>
+    .button.is-success {
+        background-color: #4285F4;
+        border-color: transparent;
+        color: white;
+    }
+
+    .button.is-success:hover {
+        background-color: #357ABD;
+    }
+
+    .button.is-success[disabled] {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+</style>

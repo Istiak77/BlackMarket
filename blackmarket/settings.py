@@ -11,7 +11,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
-
+import os
+from dotenv import load_dotenv
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -27,6 +28,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+load_dotenv()
 
 # Application definition
 
@@ -52,6 +54,7 @@ INSTALLED_APPS = [
     'dj_rest_auth.registration',
 ]
 
+
 SITE_ID = 1
 
 AUTHENTICATION_BACKENDS = (
@@ -62,6 +65,7 @@ AUTHENTICATION_BACKENDS = (
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
     ],
 }
 
@@ -73,18 +77,6 @@ SOCIALACCOUNT_QUERY_EMAIL = True
 DJOSER = {
     'LOGIN_FIELD': 'username',
     'USER_CREATE_PASSWORD_RETYPE': True,
-}
-
-SOCIALACCOUNT_PROVIDERS = {
-    'google': {
-        'SCOPE': [
-            'profile',
-            'email',
-        ],
-        'AUTH_PARAMS': {
-            'access_type': 'online',
-        },
-    }
 }
 
 
@@ -105,10 +97,20 @@ ROOT_URLCONF = 'blackmarket.urls'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8080",
     "http://127.0.0.1:8080",
-    "http://192.168.0.121:8080",
 ]
-
 CORS_ALLOW_CREDENTIALS = True
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'APP': {
+            'client_id': os.getenv('GOOGLE_OAUTH_CLIENT_ID'),
+            'secret': os.getenv('GOOGLE_OAUTH_CLIENT_SECRET'),
+            'key': ''
+        },
+        'SCOPE': ['profile', 'email'],
+        'AUTH_PARAMS': {'access_type': 'online'},
+    }
+}
 
 TEMPLATES = [
     {
