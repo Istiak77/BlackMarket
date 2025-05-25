@@ -85,21 +85,21 @@ export default {
       }
     },
     async getMyOrders() {
-      this.$store.commit('setIsLoading', true)
+    this.$store.commit('setIsLoading', true)
 
-      try {
-        const response = await axios.get('/api/v1/orders/my-orders/')
+    try {
+        const response = await axios.get('/api/v1/orders/')  // Changed endpoint
         this.orders = response.data
-      } catch (error) {
+    } catch (error) {
         console.error("Error fetching orders:", error)
         
         if (error.response && error.response.status === 401) {
-          this.$router.push('/log-in')
+            this.$router.push('/log-in')
         }
-      } finally {
+    } finally {
         this.$store.commit('setIsLoading', false)
-      }
     }
+}
   },
   beforeRouteEnter(to, from, next) {
     const isAuthenticated = localStorage.getItem('token')

@@ -21,7 +21,7 @@ urlpatterns = [
     path('api/v1/auth/google/', GoogleLogin.as_view(), name='google_login'),
 
 
-    path('api/v1/orders/my-orders/', views.MyOrdersList.as_view(), name='my-orders'),
+    path('api/v1/orders/', views.OrderList.as_view(), name='order-list'),  # Changed from my-orders
     path('api/v1/users/me/', views.UserDetail.as_view(), name='user-detail'),
 
     path('api/v1/', include('product.urls')),

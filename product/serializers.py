@@ -1,5 +1,4 @@
 from rest_framework import serializers
-
 from .models import Category, Product, Order, OrderItem
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -36,8 +35,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
 class OrderSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True, read_only=True)
-    total_price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
     
     class Meta:
         model = Order
-        fields = ['id', 'user', 'created_at', 'status', 'total_price', 'items']
+        fields = ['id', 'created_at', 'status', 'items']

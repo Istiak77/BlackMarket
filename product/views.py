@@ -52,7 +52,7 @@ def search(request):
     else:
         return Response({"products": []})
 
-class MyOrdersList(ListAPIView):
+class OrderList(ListAPIView):
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
 
@@ -67,7 +67,5 @@ class UserDetail(RetrieveAPIView):
         return Response({
             'id': user.id,
             'username': user.username,
-            'email': user.email,
-            'first_name': user.first_name,
-            'last_name': user.last_name
+            'email': user.email
         })

@@ -131,6 +131,17 @@ export default {
       axios.defaults.headers.common['Authorization'] = ""
     }
   },
+  created() {
+    const token = localStorage.getItem('token')
+    const user = JSON.parse(localStorage.getItem('user'))
+    
+    if (token && user) {
+        this.$store.commit('setToken', token)
+        this.$store.commit('setUser', user)
+        this.$store.commit('setIsAuthenticated', true)
+        axios.defaults.headers.common['Authorization'] = "Token " + token
+    }
+},
   mounted() {
     this.cart = this.$store.state.cart
   },
