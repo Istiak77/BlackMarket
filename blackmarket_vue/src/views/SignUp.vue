@@ -203,6 +203,7 @@ async handleGoogleCredentialResponse(response) {
           const formData = {
             username: this.username,
             password: this.password,
+            re_password: this.password2,
           };
 
           axios

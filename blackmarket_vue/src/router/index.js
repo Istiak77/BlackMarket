@@ -106,14 +106,14 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  // Check if user is authenticated
-  const isAuthenticated = localStorage.getItem('token')
-  
-  if (to.matched.some(record => record.meta.requiresAuth) && !isAuthenticated) {
-    next({ path: '/log-in', query: { redirect: to.fullPath } })
+  if (to.matched.some(record => record.meta.requiresAuth)) {
+    if (!store.getters.isAuthenticated) {
+      next('/login')
+    } else {
+      next()
+    }
   } else {
     next()
   }
 })
-
 export default router

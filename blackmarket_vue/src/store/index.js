@@ -1,42 +1,37 @@
 import { createStore } from 'vuex'
+import axios from 'axios'
 
 export default createStore({
   state: {
     cart: {
-      items: [],
+      items: []
     },
     isAuthenticated: false,
-    token: '',
+    token: localStorage.getItem('token') || '',
     isLoading: false,
-    user: null  // Added user object to state
+    user: JSON.parse(localStorage.getItem('user')) || null,
+    authError: null
   },
+  
   getters: {
-    currentUser: (state) => state.user,
-    isAuthenticated: (state) => state.isAuthenticated,
-    cartTotalItems: (state) => {
-      return state.cart.items.reduce((total, item) => total + item.quantity, 0)
-    }
+    currentUser: state => state.user,
+    isAuthenticated: state => state.isAuthenticated,
+    cartItemCount: state => state.cart.items.reduce((total, item) => total + item.quantity, 0),
+    cartTotalPrice: state => state.cart.items.reduce((total, item) => total + (item.product.price * item.quantity), 0),
+    authError: state => state.authError,
+    isLoading: state => state.isLoading
   },
+  
   mutations: {
     initializeStore(state) {
-      // Initialize cart
+      // Cart initialization
       if (localStorage.getItem('cart')) {
         state.cart = JSON.parse(localStorage.getItem('cart'))
-      } else {
-        localStorage.setItem('cart', JSON.stringify(state.cart))
       }
 
-      // Initialize authentication
-      if (localStorage.getItem('token')) {
-        state.token = localStorage.getItem('token')
-        state.isAuthenticated = true
-        
-        // Initialize user if exists
-        if (localStorage.getItem('user')) {
-          state.user = JSON.parse(localStorage.getItem('user'))
-        }
-      } else {
-        this.commit('clearAuthData')
+      // Auth initialization
+      if (state.token) {
+        axios.defaults.headers.common['Authorization'] = `Bearer ${state.token}`
       }
     },
 
@@ -48,6 +43,7 @@ export default createStore({
       state.token = token
       state.isAuthenticated = true
       localStorage.setItem('token', token)
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
     },
 
     setUser(state, user) {
@@ -55,24 +51,48 @@ export default createStore({
       localStorage.setItem('user', JSON.stringify(user))
     },
 
+    setAuthError(state, error) {
+      state.authError = error
+    },
+
     clearAuthData(state) {
       state.token = ''
       state.isAuthenticated = false
       state.user = null
+      state.authError = null
       localStorage.removeItem('token')
       localStorage.removeItem('user')
-      localStorage.removeItem('googleUser')  // Clear Google auth data if exists
+      delete axios.defaults.headers.common['Authorization']
     },
 
     addToCart(state, item) {
-      const exists = state.cart.items.filter(i => i.product.id === item.product.id)
+      const existingItem = state.cart.items.find(
+        i => i.product.id === item.product.id
+      )
 
-      if (exists.length) {
-        exists[0].quantity = parseInt(exists[0].quantity) + parseInt(item.quantity)
+      if (existingItem) {
+        existingItem.quantity += item.quantity
       } else {
         state.cart.items.push(item)
       }
       localStorage.setItem('cart', JSON.stringify(state.cart))
+    },
+
+    removeFromCart(state, productId) {
+      state.cart.items = state.cart.items.filter(
+        item => item.product.id !== productId
+      )
+      localStorage.setItem('cart', JSON.stringify(state.cart))
+    },
+
+    updateCartItemQuantity(state, { productId, quantity }) {
+      const item = state.cart.items.find(
+        item => item.product.id === productId
+      )
+      if (item) {
+        item.quantity = quantity
+        localStorage.setItem('cart', JSON.stringify(state.cart))
+      }
     },
 
     clearCart(state) {
@@ -80,24 +100,74 @@ export default createStore({
       localStorage.setItem('cart', JSON.stringify(state.cart))
     }
   },
+  
   actions: {
-    async loadUser({ commit }) {
+    async login({ commit }, credentials) {
+      commit('setIsLoading', true)
+      commit('setAuthError', null)
+      
       try {
-        if (localStorage.getItem('token')) {
-          const response = await axios.get('/api/v1/users/me/')
-          commit('setUser', response.data)
-        }
+        const response = await axios.post('/auth/login/', credentials)
+        commit('setToken', response.data.token)
+        commit('setUser', response.data.user)
+        return true
       } catch (error) {
-        console.error("Error loading user:", error)
-        commit('clearAuthData')
+        commit('setAuthError', error.response?.data?.message || 'Login failed')
+        return false
+      } finally {
+        commit('setIsLoading', false)
       }
     },
 
-    logout({ commit }) {
+    async register({ commit }, userData) {
+      commit('setIsLoading', true)
+      commit('setAuthError', null)
+      
+      try {
+        const response = await axios.post('/auth/register/', userData)
+        commit('setToken', response.data.token)
+        commit('setUser', response.data.user)
+        return true
+      } catch (error) {
+        commit('setAuthError', error.response?.data?.message || 'Registration failed')
+        return false
+      } finally {
+        commit('setIsLoading', false)
+      }
+    },
+
+    async logout({ commit }) {
       commit('clearAuthData')
-      axios.defaults.headers.common['Authorization'] = ""
+      try {
+        await axios.post('/auth/logout/')
+      } catch (error) {
+        console.error('Logout error:', error)
+      }
+    },
+
+    async fetchUser({ commit }) {
+      try {
+        const response = await axios.get('/auth/user/')
+        commit('setUser', response.data)
+      } catch (error) {
+        if (error.response?.status === 401) {
+          commit('clearAuthData')
+        }
+      }
+    },
+
+    async checkAuth({ state, commit }) {
+      if (!state.token) return false
+      
+      try {
+        await axios.get('/auth/verify/')
+        return true
+      } catch (error) {
+        if (error.response?.status === 401) {
+          commit('clearAuthData')
+        }
+        return false
+      }
     }
-  },
-  modules: {
   }
 })

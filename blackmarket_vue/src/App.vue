@@ -4,7 +4,8 @@
       <div class="navbar-brand">
         <router-link to="/" class="navbar-item"><strong>Black Market</strong></router-link>
 
-        <a class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbar-menu" @click="showMobileMenu = !showMobileMenu">
+        <a class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbar-menu"
+          @click="showMobileMenu = !showMobileMenu">
           <span aria-hidden="true"></span>
           <span aria-hidden="true"></span>
           <span aria-hidden="true"></span>
@@ -33,8 +34,8 @@
         </div>
 
         <div class="navbar-end">
-          <router-link to="/summer" class="navbar-item">Summer</router-link>
-          <router-link to="/winter" class="navbar-item">Winter</router-link>
+          <router-link to="/wears" class="navbar-item">Wears</router-link>
+          <router-link to="/accessories" class="navbar-item">Accessories</router-link>
 
           <div class="navbar-item">
             <div class="buttons">
@@ -96,7 +97,7 @@
     </div>
 
     <section class="section">
-      <router-view/>
+      <router-view />
     </section>
 
     <footer class="footer">
@@ -106,128 +107,91 @@
 </template>
 
 <script>
-import axios from 'axios'
-
-export default {
-  data() {
-    return {
-      showMobileMenu: false,
-      cart: {
-        items: []
+  export default {
+    data() {
+      return {
+        showMobileMenu: false
       }
-    }
-  },
-  beforeCreate() {
-    this.$store.commit('initializeStore')
-
-    const token = this.$store.state.token
-    const user = JSON.parse(localStorage.getItem('user'))
-
-    if (token) {
-      axios.defaults.headers.common['Authorization'] = "Token " + token
-      this.$store.commit('setUser', user)
-      this.$store.commit('setIsAuthenticated', true)
-    } else {
-      axios.defaults.headers.common['Authorization'] = ""
-    }
-  },
-  created() {
-    const token = localStorage.getItem('token')
-    const user = JSON.parse(localStorage.getItem('user'))
-    
-    if (token && user) {
-        this.$store.commit('setToken', token)
-        this.$store.commit('setUser', user)
-        this.$store.commit('setIsAuthenticated', true)
-        axios.defaults.headers.common['Authorization'] = "Token " + token
-    }
-},
-  mounted() {
-    this.cart = this.$store.state.cart
-  },
-  methods: {
-    logout() {
-      axios.defaults.headers.common['Authorization'] = ""
-      localStorage.removeItem('token')
-      localStorage.removeItem('user')
-      localStorage.removeItem('googleUser')
-      this.$store.commit('removeToken')
-      this.$store.commit('setIsAuthenticated', false)
-      this.$store.commit('setUser', null)
-
-      // Redirect to home with logout message
-      this.$router.push('/?logout=success')
-    }
-  },
-  computed: {
-    cartTotalLength() {
-      let totalLength = 0
-
-      for (let i = 0; i < this.cart.items.length; i++) {
-        totalLength += this.cart.items[i].quantity
+    },
+    beforeCreate() {
+      this.$store.commit('initializeStore')
+    },
+    mounted() {
+      // Check authentication status when app mounts
+      this.$store.dispatch('checkAuth')
+    },
+    methods: {
+      async logout() {
+        await this.$store.dispatch('logout')
+        this.$router.push('/?logout=success')
       }
-
-      return totalLength
+    },
+    computed: {
+      cartTotalLength() {
+        return this.$store.getters.cartItemCount
+      }
     }
   }
-}
 </script>
 
 <style lang="scss">
-@import '../node_modules/bulma';
+  @import '../node_modules/bulma';
 
-.lds-dual-ring {
-  display: inline-block;
-  width: 80px;
-  height: 80px;
-}
-.lds-dual-ring:after {
-  content: " ";
-  display: block;
-  width: 64px;
-  height: 64px;
-  margin: 8px;
-  border-radius: 50%;
-  border: 6px solid #ccc;
-  border-color: #ccc transparent #ccc transparent;
-  animation: lds-dual-ring 1.2s linear infinite;
-}
-@keyframes lds-dual-ring {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-.is-loading-bar {
-  height: 0;
-  overflow: hidden;
-  transition: all 0.3s;
-
-  &.is-loading {
+  .lds-dual-ring {
+    display: inline-block;
+    width: 80px;
     height: 80px;
   }
-}
 
-.dropdown-item {
-  display: flex;
-  align-items: center;
-  padding: 0.5rem 1rem;
-
-  .icon {
-    margin-right: 0.5rem;
+  .lds-dual-ring:after {
+    content: " ";
+    display: block;
+    width: 64px;
+    height: 64px;
+    margin: 8px;
+    border-radius: 50%;
+    border: 6px solid #ccc;
+    border-color: #ccc transparent #ccc transparent;
+    animation: lds-dual-ring 1.2s linear infinite;
   }
-}
 
-.image.is-24x24 {
-  height: 24px;
-  width: 24px;
+  @keyframes lds-dual-ring {
+    0% {
+      transform: rotate(0deg);
+    }
 
-  img {
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+  .is-loading-bar {
+    height: 0;
+    overflow: hidden;
+    transition: all 0.3s;
+
+    &.is-loading {
+      height: 80px;
+    }
+  }
+
+  .dropdown-item {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+
+    .icon {
+      margin-right: 0.5rem;
+    }
+  }
+
+  .image.is-24x24 {
     height: 24px;
     width: 24px;
+
+    img {
+      height: 24px;
+      width: 24px;
+    }
   }
-}
 </style>
