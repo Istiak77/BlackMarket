@@ -18,6 +18,7 @@ urlpatterns = [
     # Google OAuth endpoint
     path('api/v1/auth/google/', GoogleLogin.as_view(), name='google_login'),
 
+
     path('api/v1/', include('product.urls')),
     path('api/v1/payment/', include('payment.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
