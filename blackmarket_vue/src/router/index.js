@@ -97,16 +97,19 @@ const routes = [
 ]
 
 const router = createRouter({
-  history: createWebHistory(process.env.BASE_URL),
-  routes
+    history: createWebHistory(),
+    routes
 })
 
 router.beforeEach((to, from, next) => {
-  if (to.matched.some(record => record.meta.requireLogin) && !store.state.isAuthenticated) {
-    next({ name: 'LogIn', query: { to: to.path } });
-  } else {
-    next()
-  }
+    // Check if user is authenticated
+    const isAuthenticated = store.state.token || localStorage.getItem('token')
+    
+    if (to.matched.some(record => record.meta.requiresAuth) && !isAuthenticated) {
+        next({ path: '/log-in', query: { redirect: to.fullPath } })
+    } else {
+        next()
+    }
 })
 
 export default router

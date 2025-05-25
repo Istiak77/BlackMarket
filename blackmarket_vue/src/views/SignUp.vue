@@ -146,52 +146,45 @@
         });
       },
 
-        async handleGoogleCredentialResponse(response) {
-            try {
-                this.isGoogleLoading = true;
-                this.errors = [];
-                
-                const res = await axios.post("/api/v1/auth/google/", {
-                    access_token: response.credential
-                });
+async handleGoogleCredentialResponse(response) {
+    try {
+        this.isGoogleLoading = true;
+        this.errors = [];
+        
+        const res = await axios.post("/api/v1/auth/google/", {
+            access_token: response.credential
+        });
 
-                // Store all authentication and user data
-                localStorage.setItem("authToken", res.data.access);
-                localStorage.setItem("refreshToken", res.data.refresh);
-                localStorage.setItem("userInfo", JSON.stringify(res.data.user));
-                
-                if (res.data.picture) {
-                    localStorage.setItem("googleUser", JSON.stringify({
-                        name: res.data.user.name || res.data.user.username,
-                        email: res.data.user.email,
-                        picture: res.data.picture
-                    }));
-                }
+        // Store all user data
+        localStorage.setItem("authToken", res.data.access);
+        localStorage.setItem("refreshToken", res.data.refresh);
+        localStorage.setItem("userInfo", JSON.stringify(res.data.user));
+        
+        if (res.data.picture) {
+            localStorage.setItem("googleUser", JSON.stringify({
+                name: res.data.user.name || res.data.user.username,
+                email: res.data.user.email,
+                picture: res.data.picture
+            }));
+        }
 
-                // Set default authorization header
-                axios.defaults.headers.common["Authorization"] = `Bearer ${res.data.access}`;
+        // Update Vuex store
+        this.$store.commit('setUser', res.data.user);
+        this.$store.commit('setToken', res.data.access);
 
-                toast({
-                    message: "Logged in successfully via Google!",
-                    type: "is-success",
-                    dismissible: true,
-                    pauseOnHover: true,
-                    duration: 2000,
-                    position: "bottom-right",
-                });
-
-                this.$router.push("/");
-            } catch (error) {
-                console.error("Google auth error:", error.response?.data || error.message);
-                this.errors = ["Google login failed. Please try again."];
-                
-                if (error.response?.status === 400) {
-                    this.errors = ["Authentication failed. Please try again."];
-                }
-            } finally {
-                this.isGoogleLoading = false;
-            }
-        },
+        // Redirect to home with login success state
+        this.$router.push({ 
+            path: '/', 
+            query: { login: 'success' } 
+        });
+        
+    } catch (error) {
+        console.error("Google auth error:", error);
+        this.errors = ["Google login failed. Please try again."];
+    } finally {
+        this.isGoogleLoading = false;
+    }
+},
 
       submitForm() {
         this.errors = [];

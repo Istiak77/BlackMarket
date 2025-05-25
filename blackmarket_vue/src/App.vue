@@ -22,9 +22,9 @@
 
                 <div class="control">
                   <button class="button is-success">
-                      <span class="icon">
+                    <span class="icon">
                       <i class="fas fa-search"></i>
-                      </span>
+                    </span>
                   </button>
                 </div>
               </div>
@@ -39,11 +39,46 @@
           <div class="navbar-item">
             <div class="buttons">
               <template v-if="$store.state.isAuthenticated">
-                <router-link to="/my-account" class="button is-light">My account</router-link>
+                <div class="dropdown is-hoverable is-right">
+                  <div class="dropdown-trigger">
+                    <button class="button is-light" aria-haspopup="true" aria-controls="account-menu">
+                      <template v-if="$store.state.user && $store.state.user.picture">
+                        <figure class="image is-24x24" style="margin-right: 8px;">
+                          <img :src="$store.state.user.picture" class="is-rounded">
+                        </figure>
+                      </template>
+                      <span>My Account</span>
+                    </button>
+                  </div>
+                  <div class="dropdown-menu" id="account-menu" role="menu">
+                    <div class="dropdown-content">
+                      <router-link to="/my-account" class="dropdown-item">
+                        <span class="icon">
+                          <i class="fas fa-user"></i>
+                        </span>
+                        Profile
+                      </router-link>
+                      <router-link to="/my-orders" class="dropdown-item">
+                        <span class="icon">
+                          <i class="fas fa-box-open"></i>
+                        </span>
+                        My Orders
+                      </router-link>
+                      <hr class="dropdown-divider">
+                      <a class="dropdown-item" @click="logout">
+                        <span class="icon">
+                          <i class="fas fa-sign-out-alt"></i>
+                        </span>
+                        Logout
+                      </a>
+                    </div>
+                  </div>
+                </div>
               </template>
 
               <template v-else>
                 <router-link to="/log-in" class="button is-light">Log in</router-link>
+                <router-link to="/sign-up" class="button is-light">Sign up</router-link>
               </template>
 
               <router-link to="/cart" class="button is-success">
@@ -65,7 +100,7 @@
     </section>
 
     <footer class="footer">
-      <p class="has-text-centered">Copyright (c) 2021</p>
+      <p class="has-text-centered">Copyright (c) 2023</p>
     </footer>
   </div>
 </template>
@@ -86,26 +121,43 @@ export default {
     this.$store.commit('initializeStore')
 
     const token = this.$store.state.token
+    const user = JSON.parse(localStorage.getItem('user'))
 
     if (token) {
-        axios.defaults.headers.common['Authorization'] = "Token " + token
+      axios.defaults.headers.common['Authorization'] = "Token " + token
+      this.$store.commit('setUser', user)
+      this.$store.commit('setIsAuthenticated', true)
     } else {
-        axios.defaults.headers.common['Authorization'] = ""
+      axios.defaults.headers.common['Authorization'] = ""
     }
   },
   mounted() {
     this.cart = this.$store.state.cart
   },
+  methods: {
+    logout() {
+      axios.defaults.headers.common['Authorization'] = ""
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      localStorage.removeItem('googleUser')
+      this.$store.commit('removeToken')
+      this.$store.commit('setIsAuthenticated', false)
+      this.$store.commit('setUser', null)
+
+      // Redirect to home with logout message
+      this.$router.push('/?logout=success')
+    }
+  },
   computed: {
-      cartTotalLength() {
-          let totalLength = 0
+    cartTotalLength() {
+      let totalLength = 0
 
-          for (let i = 0; i < this.cart.items.length; i++) {
-              totalLength += this.cart.items[i].quantity
-          }
-
-          return totalLength
+      for (let i = 0; i < this.cart.items.length; i++) {
+        totalLength += this.cart.items[i].quantity
       }
+
+      return totalLength
+    }
   }
 }
 </script>
@@ -141,12 +193,30 @@ export default {
 .is-loading-bar {
   height: 0;
   overflow: hidden;
-
-  -webkit-transition: all 0.3s;
   transition: all 0.3s;
 
   &.is-loading {
     height: 80px;
+  }
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+
+  .icon {
+    margin-right: 0.5rem;
+  }
+}
+
+.image.is-24x24 {
+  height: 24px;
+  width: 24px;
+
+  img {
+    height: 24px;
+    width: 24px;
   }
 }
 </style>

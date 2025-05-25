@@ -12,6 +12,25 @@ export default createStore({
   getters: {
   },
   mutations: {
+
+    setIsLoading(state, status) {
+            state.isLoading = status
+        },
+        setToken(state, token) {
+            state.token = token
+            localStorage.setItem('token', token)
+        },
+        setUser(state, user) {
+            state.user = user
+            localStorage.setItem('user', JSON.stringify(user))
+        },
+        removeToken(state) {
+            state.token = null
+            state.user = null
+            localStorage.removeItem('token')
+            localStorage.removeItem('user')
+        },
+
     initializeStore(state) {
       if (localStorage.getItem('cart')) {
         state.cart = JSON.parse(localStorage.getItem('cart'))

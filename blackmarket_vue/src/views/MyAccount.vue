@@ -1,39 +1,23 @@
 <template>
-    <div class="page-my-account">
-        <div class="columns is-multiline">
-            <div class="column is-12">
-                <h1 class="title">My account</h1>
-                
-                <!-- User Info Section -->
-                <div class="box" v-if="userInfo">
-                    <div class="media">
-                        <div class="media-left">
-                            <figure class="image is-64x64">
-                                <img 
-                                    v-if="userInfo.picture" 
-                                    :src="userInfo.picture" 
-                                    alt="Profile picture"
-                                    class="is-rounded"
-                                >
-                                <span v-else class="icon is-large">
-                                    <i class="fas fa-user-circle fa-3x"></i>
-                                </span>
-                            </figure>
-                        </div>
-                        <div class="media-content">
-                            <p class="title is-4">{{ userInfo.name || username }}</p>
-                            <p class="subtitle is-6">{{ userInfo.email }}</p>
-                            <p v-if="isGoogleUser" class="tag is-info">
-                                <span class="icon">
-                                    <i class="fab fa-google"></i>
-                                </span>
-                                <span>Google Account</span>
-                            </p>
-                            <p v-else class="tag is-light">Regular Account</p>
-                        </div>
-                    </div>
-                </div>
+  <div class="page-my-account">
+    <div class="columns is-multiline">
+      <div class="column is-12">
+        <h1 class="title">My Account</h1>
+        
+        <div class="box" v-if="$store.state.user">
+          <div class="media">
+            <div class="media-left" v-if="$store.state.user.picture">
+              <figure class="image is-64x64">
+                <img :src="$store.state.user.picture" class="is-rounded">
+              </figure>
             </div>
+            <div class="media-content">
+              <p class="title is-4">{{ $store.state.user.name || $store.state.user.username }}</p>
+              <p class="subtitle is-6">{{ $store.state.user.email }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
 
             <div class="column is-12">
                 <button @click="logout()" class="button is-danger">
@@ -62,15 +46,14 @@
 import axios from 'axios'
 
 export default {
-    name: 'MyAccount',
-    data() {
-        return {
-            orders: [],
-            userInfo: null,
-            username: localStorage.getItem('username') || '',
-            isGoogleUser: false
-        }
-    },
+  beforeRouteEnter(to, from, next) {
+    const isAuthenticated = localStorage.getItem('token')
+    if (!isAuthenticated) {
+      next({ path: '/log-in' })
+    } else {
+      next()
+    }
+  },
     mounted() {
         document.title = 'My account | Black Market'
         this.getUserInfo()
