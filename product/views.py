@@ -1,12 +1,15 @@
 from django.http import Http404
 from django.db.models import Q
+from django.contrib.auth import get_user_model
 
+from rest_framework.generics import ListAPIView, RetrieveAPIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 
-from .models import Product,Category
-from .serializers import ProductSerializer,CategorySerializer
+from .models import Product,Category,Order
+from .serializers import ProductSerializer,CategorySerializer,OrderSerializer
 
 class LatestProductsList(APIView):
     def get(self, request, format = None):
@@ -48,3 +51,23 @@ def search(request):
         return Response(serializer.data)
     else:
         return Response({"products": []})
+
+class MyOrdersList(ListAPIView):
+    serializer_class = OrderSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Order.objects.filter(user=self.request.user).order_by('-created_at')
+
+class UserDetail(RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        return Response({
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'first_name': user.first_name,
+            'last_name': user.last_name
+        })

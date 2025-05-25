@@ -41,14 +41,18 @@ const routes = [
     name: 'LogIn',
     component: LogIn
   },
-  {
-    path: '/my-account',
-    name: 'MyAccount',
-    component: MyAccount,
-    meta: {
-      requireLogin: true
-    }
-  },
+{
+  path: '/my-account',
+  name: 'MyAccount',
+  component: MyAccount,
+  meta: { requiresAuth: true }
+},
+{
+  path: '/my-orders',
+  name: 'MyOrders',
+  component: MyAccount, // Same component with different view
+  meta: { requiresAuth: true }
+},
   {
     path: '/search',
     name: 'Search',
@@ -102,14 +106,14 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-    // Check if user is authenticated
-    const isAuthenticated = store.state.token || localStorage.getItem('token')
-    
-    if (to.matched.some(record => record.meta.requiresAuth) && !isAuthenticated) {
-        next({ path: '/log-in', query: { redirect: to.fullPath } })
-    } else {
-        next()
-    }
+  // Check if user is authenticated
+  const isAuthenticated = localStorage.getItem('token')
+  
+  if (to.matched.some(record => record.meta.requiresAuth) && !isAuthenticated) {
+    next({ path: '/log-in', query: { redirect: to.fullPath } })
+  } else {
+    next()
+  }
 })
 
 export default router
